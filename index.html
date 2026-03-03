@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovelHub - Share Your Stories</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">NovelHub</h1>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html">Home</a>
+                <a href="login.html" id="loginLink">Login</a>
+                <a href="dashboard.html" id="dashboardLink" style="display: none;">Dashboard</a>
+                <a href="create-novel.html" id="createLink" style="display: none;">Write Novel</a>
+                <a href="#" id="logoutLink" style="display: none;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Welcome to NovelHub</h2>
+            <p>Discover amazing stories or share your own with the world</p>
+            <a href="create-novel.html" class="btn btn-primary" id="createNovelBtn" style="display: none;">Start Writing</a>
+        </section>
+
+        <section class="novels-grid" id="novelsGrid">
+            <h3>Recent Novels</h3>
+            <div class="grid" id="novelsList"></div>
+        </section>
+    </main>
+
+    <script type="module">
+        // First initialize Supabase with your credentials
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        
+        const supabaseUrl = 'https://ngtarhwkcigbvbjqalbk.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ndGFyaHdrY2lnYnZianFhbGJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MjAzODYsImV4cCI6MjA4ODA5NjM4Nn0.E3eDI6q24BD_DU-HP4fFJ0P_Wo0FbgsVqFx6rvZQN9E';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        window.supabase = supabase;
+        
+        console.log('Supabase initialized');
+        
+        // Load auth module
+        import('./js/auth.js').then(authModule => {
+            // Make auth functions available
+            window.checkUser = authModule.checkUser;
+            window.handleLogout = authModule.handleLogout;
+            
+            // Check user status to update navigation
+            authModule.checkUser();
+            
+            // Setup logout link
+            const logoutLink = document.getElementById('logoutLink');
+            if (logoutLink) {
+                logoutLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    authModule.handleLogout();
+                });
+            }
+        });
+        
+        // Load novels module
+        import('./js/novels.js').then(novelsModule => {
+            // Make novel functions available
+            window.loadNovels = novelsModule.loadNovels;
+            
+            // Load novels for homepage
+            if (document.getElementById('novelsList')) {
+                novelsModule.loadNovels();
+            }
+        });
+        
+        // Note: comments.js is not needed on homepage
+    </script>
+</body>
+</html>

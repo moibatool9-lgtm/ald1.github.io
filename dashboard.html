@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NovelHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">NovelHub</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="create-novel.html">Write Novel</a>
+                <a href="#" id="logoutBtn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h2>My Dashboard</h2>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>My Novels</h3>
+                <p id="novelCount">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Views</h3>
+                <p id="totalViews">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Likes</h3>
+                <p id="totalLikes">0</p>
+            </div>
+        </div>
+
+        <section class="my-novels">
+            <h3>My Novels</h3>
+            <div class="grid" id="myNovelsList"></div>
+        </section>
+    </main>
+
+    <script type="module">
+        // First initialize Supabase
+        import './js/supabase-init.js';
+        
+        // Then load auth module
+        import('./js/auth.js').then(authModule => {
+            // Make auth functions available
+            window.checkUser = authModule.checkUser;
+            window.handleLogout = authModule.handleLogout;
+            
+            // Check user status - redirect to login if not authenticated
+            authModule.checkUser(true);
+            
+            // Setup logout button
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    authModule.handleLogout();
+                });
+            }
+        });
+        
+        // Load novels module
+        import('./js/novels.js').then(novelsModule => {
+            // Make novel functions available
+            window.loadMyNovels = novelsModule.loadMyNovels;
+            window.deleteNovel = novelsModule.deleteNovel;
+            
+            // Load user's novels
+            if (document.getElementById('myNovelsList')) {
+                novelsModule.loadMyNovels();
+            }
+        });
+    </script>
+</body>
+</html>

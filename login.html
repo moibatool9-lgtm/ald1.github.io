@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NovelHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">NovelHub</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="login.html">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="auth-container">
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="showTab('login')">Login</button>
+                <button class="tab-btn" onclick="showTab('signup')">Sign Up</button>
+            </div>
+            
+            <div id="loginForm" class="auth-form active">
+                <h2>Welcome Back</h2>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+            </div>
+
+            <div id="signupForm" class="auth-form">
+                <h2>Create Account</h2>
+                <form onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signupUsername">Username</label>
+                        <input type="text" id="signupUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">Email</label>
+                        <input type="email" id="signupEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        // Import Supabase first
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        
+        const supabaseUrl = 'https://ngtarhwkcigbvbjqalbk.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ndGFyaHdrY2lnYnZianFhbGJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MjAzODYsImV4cCI6MjA4ODA5NjM4Nn0.E3eDI6q24BD_DU-HP4fFJ0P_Wo0FbgsVqFx6rvZQN9E';
+        window.supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Then import auth functions
+        import('./js/auth.js').then(module => {
+            window.handleLogin = module.handleLogin;
+            window.handleSignup = module.handleSignup;
+            window.showTab = module.showTab;
+            window.checkUser = module.checkUser;
+        });
+    </script>
+    <!-- At the end of each HTML file, before closing body tag -->
+<script type="module">
+    // First initialize Supabase
+    import './js/supabase-init.js';
+    
+    // Then load other modules as needed
+    import('./js/auth.js').then(module => {
+        // Make auth functions available
+        window.checkUser = module.checkUser;
+        window.handleLogout = module.handleLogout;
+        
+        // Check user status
+        module.checkUser();
+    });
+    
+    // Load page-specific modules
+    import('./js/novels.js').then(module => {
+        // Make novel functions available
+        window.loadNovels = module.loadNovels;
+        window.loadMyNovels = module.loadMyNovels;
+        window.createNovel = module.createNovel;
+        window.loadNovel = module.loadNovel;
+        window.incrementLikes = module.incrementLikes;
+        window.deleteNovel = module.deleteNovel;
+        
+        // Call page-specific functions
+        if (document.getElementById('novelsList')) {
+            module.loadNovels();
+        }
+        if (document.getElementById('myNovelsList')) {
+            module.loadMyNovels();
+        }
+    });
+    
+    import('./js/comments.js').then(module => {
+        window.loadComments = module.loadComments;
+        window.addComment = module.addComment;
+    });
+</script>
+</body>
+</html>

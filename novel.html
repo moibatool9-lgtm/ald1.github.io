@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novel - NovelHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">NovelHub</h1>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html">Home</a>
+                <a href="login.html" id="loginLink">Login</a>
+                <a href="dashboard.html" id="dashboardLink" style="display: none;">Dashboard</a>
+                <a href="create-novel.html" id="createLink" style="display: none;">Write Novel</a>
+                <a href="#" id="logoutLink" style="display: none;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div id="loadingIndicator" class="loading">Loading novel...</div>
+        
+        <article class="novel-view" id="novelView" style="display: none;">
+            <h2 id="novelTitle"></h2>
+            <div class="novel-meta">
+                <span>By <span id="novelAuthor"></span></span>
+                <span id="novelDate"></span>
+            </div>
+            
+            <div class="novel-stats">
+                <button class="stat-btn" id="likeBtn">
+                    ❤️ <span id="likeCount">0</span> Likes
+                </button>
+                <span class="stat">👁️ <span id="clickCount">0</span> Views</span>
+                <span class="stat">💬 <span id="commentCount">0</span> Comments</span>
+            </div>
+            
+            <div class="novel-content" id="novelContent"></div>
+        </article>
+
+        <section class="comments-section" id="commentsSection" style="display: none;">
+            <h3>Comments</h3>
+            
+            <div id="commentForm" class="comment-form" style="display: none;">
+                <textarea id="commentInput" placeholder="Write a comment..." rows="3"></textarea>
+                <button class="btn btn-primary" id="postCommentBtn">Post Comment</button>
+            </div>
+            
+            <div id="commentsList" class="comments-list">
+                <p class="text-center">Loading comments...</p>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        // Import Supabase
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        
+        // Initialize Supabase - REPLACE WITH YOUR CREDENTIALS
+        const supabaseUrl = 'YOUR_SUPABASE_URL';
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        window.supabase = supabase;
+
+        // Get novel ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const novelId = urlParams.get('id');
+        
+        if (!novelId) {
+            window.location.href = 'index.html';
+        }
+
+        // Import all modules
+        import('./js/auth.js').then(authModule => {
+            window.checkUser = authModule.checkUser;
+            window.handleLogout = authModule.handleLogout;
+            
+            // Check user status
+            authModule.checkUser();
+        });
+
+        import('./js/novels.js').then(novelsModule => {
+            window.loadNovel = novelsModule.loadNovel;
+            window.incrementLikes = novelsModule.incrementLikes;
+            window.incrementClicks = novelsModule.incrementClicks;
+            
+            // Load the novel
+            novelsModule.loadNovel(novelId);
+            novelsModule.incrementClicks(novelId);
+        });
+
+        import('./js/comments.js').then(commentsModule => {
+            window.loadComments = commentsModule.loadComments;
+            window.addComment = commentsModule.addComment;
+            
+            // Load comments
+            commentsModule.loadComments(novelId);
+        });
+
+        // Set up event listeners after imports
+        setTimeout(() => {
+            // Like button
+            document.getElementById('likeBtn')?.addEventListener('click', () => {
+                if (window.incrementLikes) {
+                    window.incrementLikes(novelId);
+                }
+            });
+            
+            // Post comment button
+            document.getElementById('postCommentBtn')?.addEventListener('click', () => {
+                if (window.addComment) {
+                    window.addComment(novelId);
+                }
+            });
+            
+            // Logout link
+            document.getElementById('logoutLink')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (window.handleLogout) {
+                    window.handleLogout();
+                }
+            });
+
+            // Comment input Enter key
+            document.getElementById('commentInput')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (window.addComment) {
+                        window.addComment(novelId);
+                    }
+                }
+            });
+        }, 500);
+    </script>
+</body>
+</html>
