@@ -1,24 +1,36 @@
-// Novel management functions
+console.log('novels.js loaded');
 
-// Load novels on homepage
 // Novel management functions
 
 // Load novels on homepage
 export async function loadNovels() {
+    console.log('loadNovels function called');
+    
     try {
         if (!window.supabase) {
-            throw new Error('Supabase client not initialized');
+            console.error('Supabase client not initialized');
+            return;
         }
+        
+        console.log('Fetching novels from Supabase...');
         
         const { data: novels, error } = await window.supabase
             .from('novels')
             .select('*')
             .order('created_at', { ascending: false });
         
-        if (error) throw error;
+        if (error) {
+            console.error('Error fetching novels:', error);
+            throw error;
+        }
+        
+        console.log('Novels fetched:', novels);
         
         const novelsList = document.getElementById('novelsList');
-        if (!novelsList) return;
+        if (!novelsList) {
+            console.error('novelsList element not found');
+            return;
+        }
         
         if (!novels || novels.length === 0) {
             novelsList.innerHTML = '<p class="text-center">No novels yet. Be the first to write one!</p>';
@@ -41,33 +53,35 @@ export async function loadNovels() {
                 </div>
             </div>
         `).join('');
+        
+        console.log('Novels displayed successfully');
     } catch (error) {
         console.error('Error loading novels:', error);
+        const novelsList = document.getElementById('novelsList');
+        if (novelsList) {
+            novelsList.innerHTML = '<p class="text-center">Error loading novels. Please try again.</p>';
+        }
     }
 }
 
-// Helper function to escape HTML
-function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-
-
 // Load user's novels on dashboard
 export async function loadMyNovels() {
+    console.log('loadMyNovels function called');
+    
     try {
         if (!window.supabase) {
             throw new Error('Supabase client not initialized');
         }
         
-        const { data: { user } } = await window.supabase.auth.getUser();
-        if (!user) return;
+        const { data: { user }, error: userError } = await window.supabase.auth.getUser();
+        if (userError) throw userError;
+        
+        if (!user) {
+            console.log('No user logged in');
+            return;
+        }
+        
+        console.log('Loading novels for user:', user.id);
         
         const { data: novels, error } = await window.supabase
             .from('novels')
@@ -76,6 +90,8 @@ export async function loadMyNovels() {
             .order('created_at', { ascending: false });
         
         if (error) throw error;
+        
+        console.log('User novels fetched:', novels);
         
         // Update stats
         const novelCountEl = document.getElementById('novelCount');
@@ -120,6 +136,7 @@ export async function loadMyNovels() {
 // Create a new novel
 export async function createNovel(event) {
     event.preventDefault();
+    console.log('createNovel function called');
     
     try {
         if (!window.supabase) {
@@ -136,6 +153,8 @@ export async function createNovel(event) {
             window.location.href = 'login.html';
             return;
         }
+        
+        console.log('User authenticated:', user.id);
         
         // Get form values
         const title = document.getElementById('title').value;
@@ -162,6 +181,8 @@ export async function createNovel(event) {
             console.log('Using email as author name');
         }
         
+        console.log('Inserting novel with title:', title);
+        
         // Insert the novel
         const { data, error } = await window.supabase
             .from('novels')
@@ -183,6 +204,7 @@ export async function createNovel(event) {
             throw error;
         }
         
+        console.log('Novel created successfully:', data);
         alert('Novel published successfully!');
         window.location.href = 'dashboard.html';
         
@@ -194,6 +216,8 @@ export async function createNovel(event) {
 
 // Load single novel with proper formatting
 export async function loadNovel(novelId) {
+    console.log('loadNovel function called for ID:', novelId);
+    
     try {
         // Show loading, hide content
         const loadingEl = document.getElementById('loadingIndicator');
@@ -214,7 +238,12 @@ export async function loadNovel(novelId) {
             .eq('id', novelId)
             .single();
         
-        if (error) throw error;
+        if (error) {
+            console.error('Error fetching novel:', error);
+            throw error;
+        }
+        
+        console.log('Novel loaded:', novel);
         
         // Set basic info
         document.getElementById('novelTitle').textContent = novel.title;
@@ -285,6 +314,8 @@ function formatNovelContent(content) {
 
 // Increment clicks
 export async function incrementClicks(novelId) {
+    console.log('incrementClicks called for ID:', novelId);
+    
     try {
         if (!window.supabase) return;
         
@@ -304,6 +335,8 @@ export async function incrementClicks(novelId) {
             .eq('id', novelId);
         
         if (updateError) throw updateError;
+        
+        console.log('Clicks incremented successfully');
     } catch (error) {
         console.error('Error incrementing clicks:', error);
     }
@@ -311,6 +344,8 @@ export async function incrementClicks(novelId) {
 
 // Increment likes
 export async function incrementLikes(novelId) {
+    console.log('incrementLikes called for ID:', novelId);
+    
     try {
         if (!window.supabase) return;
         
@@ -342,6 +377,8 @@ export async function incrementLikes(novelId) {
         // Update UI
         const likeCountEl = document.getElementById('likeCount');
         if (likeCountEl) likeCountEl.textContent = newLikes;
+        
+        console.log('Likes incremented successfully');
     } catch (error) {
         console.error('Error incrementing likes:', error);
     }
@@ -349,6 +386,8 @@ export async function incrementLikes(novelId) {
 
 // Delete novel
 export async function deleteNovel(novelId) {
+    console.log('deleteNovel called for ID:', novelId);
+    
     if (!confirm('Are you sure you want to delete this novel?')) return;
     
     try {
@@ -388,7 +427,6 @@ function escapeHtml(unsafe) {
 }
 
 // Make functions available globally
-// Make function available globally
 window.loadNovels = loadNovels;
 window.loadMyNovels = loadMyNovels;
 window.createNovel = createNovel;
@@ -396,3 +434,5 @@ window.loadNovel = loadNovel;
 window.incrementClicks = incrementClicks;
 window.incrementLikes = incrementLikes;
 window.deleteNovel = deleteNovel;
+
+console.log('All novel functions exported and available globally');
